@@ -321,6 +321,11 @@ void FullscreenBackground::resizeEvent(QResizeEvent *event)
     return QWidget::resizeEvent(event);
 }
 
+/** zzz
+ * @brief FullscreenBackground::mouseMoveEvent
+ * 鼠标移动触发这个事件，可能需要配合setMouseTracking(true)使用
+ * @param event
+ */
 void FullscreenBackground::mouseMoveEvent(QMouseEvent *event)
 {
     if (!m_isBlackMode) {

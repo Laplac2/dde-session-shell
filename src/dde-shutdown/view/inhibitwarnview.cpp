@@ -209,6 +209,10 @@ void InhibitWarnView::setAcceptVisible(const bool acceptable)
     m_acceptBtn->setVisible(acceptable);
 }
 
+/** zzz
+ * @brief InhibitWarnView::toggleButtonState
+ * 切换按钮，一个选中另一个取消选中，配合setCheckable()和setAutoExclusive()一起使用效果更好
+ */
 void InhibitWarnView::toggleButtonState()
 {
     if (m_cancelBtn->isChecked() && m_acceptBtn->isVisible())

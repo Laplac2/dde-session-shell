@@ -621,24 +621,7 @@ void GreeterWorkek::authenticationComplete()
     qInfo() << "authentication complete, authenticated " << m_greeter->isAuthenticated();
 
     if (!m_greeter->isAuthenticated()) {
-        // m_authenticating = false;
-        // if (m_password.isEmpty()) {
-        //     resetLightdmAuth(m_model->currentUser(), 100, false);
-        //     return;
-        // }
-
-        // m_password.clear();
-
-        if (m_model->currentUser()->type() == User::Native) {
-            emit m_model->authFaildTipsMessage(tr("Wrong Password"));
-        }
-
-        if (m_model->currentUser()->type() == User::ADDomain) {
-            emit m_model->authFaildTipsMessage(tr("The account or password is not correct. Please enter again."));
-        }
-
-        // resetLightdmAuth(m_model->currentUser(), 100, false);
-
+        // m_model->updateAuthStatus(AuthTypeSingle, StatusCodeFailure, "text");
         return;
     }
 

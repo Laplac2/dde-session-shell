@@ -330,7 +330,7 @@ void UserLoginWidget::initSingleAuth(const int index)
     });
     connect(m_singleAuth, &AuthSingle::requestShowKeyboardList, this, &UserLoginWidget::showKeyboardList);
     connect(m_singleAuth, &AuthSingle::authFinished, this, [this](const bool status) {
-        checkAuthResult(AuthTypeAll, status);
+        checkAuthResult(AuthTypeSingle, status);
     });
 
     connect(m_kbLayoutWidget, &KbLayoutWidget::setButtonClicked, m_singleAuth, &AuthSingle::setKeyboardButtonInfo);

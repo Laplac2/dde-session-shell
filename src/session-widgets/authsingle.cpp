@@ -138,6 +138,7 @@ void AuthSingle::setAuthResult(const int status, const QString &result)
         m_lineEdit->lineEdit()->setReadOnly(true);
         setLineEditInfo(result, PlaceHolderText);
         emit authFinished(StatusCodeSuccess);
+        m_retryAuth = false;
         break;
     case StatusCodeFailure: {
         setAnimationState(false);
@@ -154,7 +155,9 @@ void AuthSingle::setAuthResult(const int status, const QString &result)
             m_lineEdit->setFocus();
             m_lineEdit->lineEdit()->setReadOnly(false);
             setLineEditInfo(result, AlertText);
-            emit activeAuth();
+            if (m_retryAuth) {
+                emit activeAuth();
+            }
         }
         break;
     }
@@ -183,6 +186,7 @@ void AuthSingle::setAuthResult(const int status, const QString &result)
         m_lineEdit->setFocus();
         m_lineEdit->lineEdit()->setReadOnly(false);
         setLineEditInfo(result, PlaceHolderText);
+        m_retryAuth = true;
         break;
     case StatusCodeStarted:
         break;

@@ -216,6 +216,7 @@ void AuthenticationModule::init()
  */
 void AuthenticationModule::setAuthResult(const int status, const QString &result)
 {
+    qDebug() << "AuthenticationModule::setAuthResult:" << m_authType << status << result;
     switch (status) {
     case StatusCodeSuccess:
         m_status = status;
@@ -373,6 +374,7 @@ void AuthenticationModule::setAuthResult(const int status, const QString &result
             m_textLabel->setText(tr("Fingerprint locked, use password please"));
         }
         if (m_lineEdit != nullptr) {
+            qDebug() << "AuthenticationModule::setAuthResult:" << m_integerMinutes;
             setAnimationState(false);
             setLineEditInfo(tr("Please try again %n minute(s) later", "", static_cast<int>(m_integerMinutes)), PlaceHolderText);
         }
@@ -476,6 +478,7 @@ void AuthenticationModule::setCapsStatus(const bool isCapsOn)
  */
 void AuthenticationModule::setLimitsInfo(const LimitsInfo &info)
 {
+    qDebug() << "AuthenticationModule::setLimitsInfo:" << info.unlockTime << m_authType;
     if (info.unlockTime != m_limitsInfo->unlockTime) {
         m_limitsInfo->unlockTime = info.unlockTime;
         updateUnlockTime();

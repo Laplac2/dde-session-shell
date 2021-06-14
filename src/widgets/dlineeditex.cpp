@@ -24,6 +24,7 @@
 #include <QPainter>
 #include <QVariantAnimation>
 #include <QPropertyAnimation>
+#include <QDebug>
 
 LoadSlider::LoadSlider(QWidget *parent)
     : QWidget(parent)
@@ -111,6 +112,7 @@ void DLineEditEx::stopAnimation()
  */
 void DLineEditEx::paintEvent(QPaintEvent *event)
 {
+    // qDebug() << "DLineEditEx::paintEvent:" << lineEdit()->fontMetrics().height() << lineEdit()->rect();
     if (lineEdit()->hasFocus() && lineEdit()->alignment() == Qt::AlignCenter
         && !lineEdit()->placeholderText().isEmpty() && lineEdit()->text().isEmpty()) {
         QPainter pa(this);

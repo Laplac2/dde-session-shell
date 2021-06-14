@@ -178,6 +178,8 @@ void UserFrameList::removeUser(const uint uid)
 //点击用户
 void UserFrameList::onUserClicked()
 {
+    qDebug() << "UserFrameList::onUserClicked";
+
     UserLoginWidget *widget = static_cast<UserLoginWidget *>(sender());
     if (!widget) return;
 

@@ -34,7 +34,7 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
     , m_switchosInterface(new HuaWeiSwitchOSInterface("com.huawei", "/com/huawei/switchos", QDBusConnection::sessionBus(), this))
     , m_accountsInter(new AccountsInter("com.deepin.daemon.Accounts", "/com/deepin/daemon/Accounts", QDBusConnection::systemBus(), this))
     , m_loginedInter(new LoginedInter("com.deepin.daemon.Accounts", "/com/deepin/daemon/Logined", QDBusConnection::systemBus(), this))
-    , m_xEventInter(new XEventInter("com.deepin.api.XEventMonitor","/com/deepin/api/XEventMonitor",QDBusConnection::sessionBus(), this))
+    , m_xEventInter(new XEventInter("com.deepin.api.XEventMonitor", "/com/deepin/api/XEventMonitor", QDBusConnection::sessionBus(), this))
 {
     m_accountsInter->setSync(false);
     m_currentUserUid = getuid();
@@ -76,16 +76,16 @@ LockWorker::LockWorker(SessionBaseModel *const model, QObject *parent)
 
     m_resetSessionTimer->setInterval(15000);
     if (QGSettings::isSchemaInstalled("com.deepin.dde.session-shell")) {
-         QGSettings gsetting("com.deepin.dde.session-shell", "/com/deepin/dde/session-shell/", this);
-         if(gsetting.keys().contains("authResetTime")){
-             int resetTime = gsetting.get("auth-reset-time").toInt();
-             if(resetTime > 0)
+        QGSettings gsetting("com.deepin.dde.session-shell", "/com/deepin/dde/session-shell/", this);
+        if (gsetting.keys().contains("authResetTime")) {
+            int resetTime = gsetting.get("auth-reset-time").toInt();
+            if (resetTime > 0)
                 m_resetSessionTimer->setInterval(resetTime);
-         }
+        }
     }
 
     m_resetSessionTimer->setSingleShot(true);
-    connect(m_resetSessionTimer,&QTimer::timeout,this,[ = ]{
+    connect(m_resetSessionTimer, &QTimer::timeout, this, [=] {
         destoryAuthentication(m_account);
         createAuthentication(m_account);
     });
@@ -111,6 +111,7 @@ void LockWorker::initConnections()
     /* com.deepin.daemon.Authenticate */
     connect(m_authFramework, &DeepinAuthFramework::FramworkStateChanged, m_model, &SessionBaseModel::updateFrameworkState);
     connect(m_authFramework, &DeepinAuthFramework::LimitsInfoChanged, this, [this](const QString &account) {
+        qDebug() << "DeepinAuthFramework::LimitsInfoChanged:" << account;
         if (account == m_model->currentUser()->name()) {
             m_model->updateLimitedInfo(m_authFramework->GetLimitedInfo(account));
         }
@@ -123,6 +124,7 @@ void LockWorker::initConnections()
     connect(m_authFramework, &DeepinAuthFramework::PINLenChanged, m_model, &SessionBaseModel::updatePINLen);
     connect(m_authFramework, &DeepinAuthFramework::PromptChanged, m_model, &SessionBaseModel::updatePrompt);
     connect(m_authFramework, &DeepinAuthFramework::AuthStatusChanged, this, [=](const int type, const int status, const QString &message) {
+        qDebug() << "DeepinAuthFramework::AuthStatusChanged:" << type << status << message << m_model->getAuthProperty().MFAFlag;
         if (m_model->getAuthProperty().MFAFlag) {
             if (type == AuthTypeAll && status == StatusCodeSuccess) {
                 m_model->updateAuthStatus(type, status, message);
@@ -139,7 +141,7 @@ void LockWorker::initConnections()
                 case StatusCodeFailure:
                 case StatusCodeLocked:
                     endAuthentication(m_account, type);
-                    QTimer::singleShot(10, this, [=]{
+                    QTimer::singleShot(10, this, [=] {
                         m_model->updateAuthStatus(type, status, message);
                     });
                     break;
@@ -156,13 +158,13 @@ void LockWorker::initConnections()
         } else {
             m_model->updateAuthStatus(type, status, message);
 
-            if(status == StatusCodeSuccess)
+            if (status == StatusCodeSuccess)
                 onUnlockFinished(true);
         }
     });
     connect(m_authFramework, &DeepinAuthFramework::FactorsInfoChanged, m_model, &SessionBaseModel::updateFactorsInfo);
     /* com.deepin.dde.LockService */
-    connect(m_lockInter, &DBusLockService::UserChanged, this, [=] (const QString &json) {
+    connect(m_lockInter, &DBusLockService::UserChanged, this, [=](const QString &json) {
         emit m_model->switchUserFinished();
         m_resetSessionTimer->stop();
     });
@@ -174,7 +176,8 @@ void LockWorker::initConnections()
         emit m_model->authFinished(true);
     });
     /* org.freedesktop.login1.Session */
-    connect(m_login1SessionSelf, &Login1SessionSelf::ActiveChanged, this, [=] (bool active) {
+    connect(m_login1SessionSelf, &Login1SessionSelf::ActiveChanged, this, [=](bool active) {
+        qDebug() << "Login1SessionSelf::ActiveChanged:" << active;
         if (active) {
             createAuthentication(m_account);
         } else {
@@ -183,6 +186,7 @@ void LockWorker::initConnections()
     });
     /* org.freedesktop.login1.Manager */
     connect(m_login1Inter, &DBusLogin1Manager::PrepareForSleep, this, [=](bool isSleep) {
+        qDebug() << "DBusLogin1Manager::PrepareForSleep:" << isSleep;
         if (isSleep) {
             destoryAuthentication(m_account);
         } else {
@@ -192,19 +196,20 @@ void LockWorker::initConnections()
     });
 
     connect(m_xEventInter, &XEventInter::CursorMove, this, [=] {
-        if(m_model->visible() && m_resetSessionTimer->isActive()){
+        if (m_model->visible() && m_resetSessionTimer->isActive()) {
             m_resetSessionTimer->start();
         }
     });
 
     connect(m_xEventInter, &XEventInter::KeyRelease, this, [=] {
-        if(m_model->visible() && m_resetSessionTimer->isActive()){
+        if (m_model->visible() && m_resetSessionTimer->isActive()) {
             m_resetSessionTimer->start();
         }
     });
 
     /* model */
     connect(m_model, &SessionBaseModel::authTypeChanged, this, [=](const int type) {
+        qDebug() << "SessionBaseModel::authTypeChanged:" << type;
         if (type > 0 && !m_model->currentUser()->limitsInfo()->value(type).locked) {
             startAuthentication(m_account, m_model->getAuthProperty().AuthType);
         } else {
@@ -220,15 +225,16 @@ void LockWorker::initConnections()
             m_password.clear();
         }
     });
-    connect(m_model, &SessionBaseModel::visibleChanged, this, [=] (bool visible) {
+    connect(m_model, &SessionBaseModel::visibleChanged, this, [=](bool visible) {
+        qDebug() << "SessionBaseModel::visibleChanged:" << visible;
         if (visible) {
             createAuthentication(m_model->currentUser()->name());
         } else {
-            m_resetSessionTimer->stop();
             destoryAuthentication(m_account);
         }
     });
-    connect(m_model, &SessionBaseModel::onStatusChanged, this, [=] (SessionBaseModel::ModeStatus status) {
+    connect(m_model, &SessionBaseModel::onStatusChanged, this, [=](SessionBaseModel::ModeStatus status) {
+        qDebug() << "SessionBaseModel::onStatusChanged:" << status << m_model->visible();
         if (status == SessionBaseModel::ModeStatus::PowerMode || status == SessionBaseModel::ModeStatus::ShutDownMode) {
             checkPowerInfo();
         }
@@ -376,6 +382,7 @@ void LockWorker::onPasswordResult(const QString &msg)
  */
 void LockWorker::createAuthentication(const QString &account)
 {
+    qDebug() << "LockWorker::createAuthentication:" << account;
     if (SessionBaseModel::ShutDownMode == m_model->currentModeState())
         return;
     QString userPath = m_accountsInter->FindUserByName(account);
@@ -416,7 +423,6 @@ void LockWorker::destoryAuthentication(const QString &account)
         m_authFramework->DestoryAuthenticate();
         break;
     }
-
 }
 
 /**
@@ -428,6 +434,7 @@ void LockWorker::destoryAuthentication(const QString &account)
  */
 void LockWorker::startAuthentication(const QString &account, const int authType)
 {
+    qDebug() << "LockWorker::startAuthentication:" << account << authType;
     switch (m_model->getAuthProperty().FrameworkState) {
     case 0:
         if (m_model->getAuthProperty().MFAFlag) {
@@ -440,7 +447,7 @@ void LockWorker::startAuthentication(const QString &account, const int authType)
         m_authFramework->CreateAuthenticate(account);
         break;
     }
-    QTimer::singleShot(10, this, [=]  {
+    QTimer::singleShot(10, this, [=] {
         m_model->updateLimitedInfo(m_authFramework->GetLimitedInfo(account));
     });
 }

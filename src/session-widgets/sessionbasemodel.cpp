@@ -139,6 +139,7 @@ void SessionBaseModel::setCurrentUser(std::shared_ptr<User> user)
     }
     m_currentUser = user;
     emit currentUserChanged(user);
+    qDebug() << "SessionBaseModel::setCurrentUser:" << user->name();
 }
 
 /**
@@ -448,6 +449,7 @@ void SessionBaseModel::updateLoginedUserList(const QString &list)
  */
 void SessionBaseModel::updateLimitedInfo(const QString &info)
 {
+    qDebug() << "SessionBaseModel::updateLimitedInfo" << m_currentUser->name();
     m_currentUser->updateLimitsInfo(info);
 }
 
@@ -458,6 +460,7 @@ void SessionBaseModel::updateLimitedInfo(const QString &info)
  */
 void SessionBaseModel::updateFrameworkState(const int state)
 {
+    qDebug() << "SessionBaseModel::updateFrameworkState:" << state;
     if (state == m_authProperty.FrameworkState) {
         return;
     }
@@ -510,6 +513,7 @@ void SessionBaseModel::updateFuzzyMFA(const bool fuzzMFA)
  */
 void SessionBaseModel::updateMFAFlag(const bool MFAFlag)
 {
+    qDebug() << "SessionBaseModel::updateMFAFlag:" << MFAFlag << m_authProperty.MFAFlag;
     if (MFAFlag == m_authProperty.MFAFlag) {
         return;
     }
@@ -548,6 +552,7 @@ void SessionBaseModel::updatePrompt(const QString &prompt)
  */
 void SessionBaseModel::updateFactorsInfo(const MFAInfoList &infoList)
 {
+    qDebug() << "SessionBaseModel::updateFactorsInfo:" << infoList;
     m_authProperty.AuthType = AuthTypeNone;
     if (m_currentUser->uid() == INT_MAX) {
         emit authTypeChanged(AuthTypeNone);

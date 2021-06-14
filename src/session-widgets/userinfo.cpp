@@ -170,6 +170,7 @@ void User::onLockTimeOut()
  */
 void User::updateLimitsInfo(const QString &info)
 {
+    qDebug() << "User::updateLimitsInfo:" << m_userName;
     LimitsInfo limitsInfoTmp;
     const QJsonDocument limitsInfoDoc = QJsonDocument::fromJson(info.toUtf8());
     const QJsonArray limitsInfoArr = limitsInfoDoc.array();

@@ -244,6 +244,7 @@ void AuthSingle::setCapsStatus(const bool isCapsOn)
  */
 void AuthSingle::setLimitsInfo(const LimitsInfo &info)
 {
+    qDebug() << "AuthSingle::setLimitsInfo" << info.unlockTime;
     if (info.unlockTime != m_limitsInfo->unlockTime) {
         m_limitsInfo->unlockTime = info.unlockTime;
         updateUnlockTime();

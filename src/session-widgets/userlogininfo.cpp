@@ -26,6 +26,7 @@
 #include "userframelist.h"
 #include "constants.h"
 #include <QKeyEvent>
+#include <QDebug>
 
 /**
  * 定位：UserLoginWidget、UserFrameList的后端，托管它们需要用的数据
@@ -139,6 +140,7 @@ void UserLoginInfo::initConnect()
 
 void UserLoginInfo::abortConfirm(bool abort)
 {
+    qDebug() << "UserLoginInfo::abortConfirm:" << abort;
     if (!abort) {
         m_model->setPowerAction(SessionBaseModel::PowerAction::None);
     }
@@ -178,6 +180,7 @@ void UserLoginInfo::userLockChanged(bool disable)
 
 void UserLoginInfo::receiveSwitchUser(std::shared_ptr<User> user)
 {
+    qDebug() << "UserLoginInfo::receiveSwitchUser:" << user->name() << m_user->name();
     if (m_user != user) {
         // m_userLoginWidget->clearPassWord();
 

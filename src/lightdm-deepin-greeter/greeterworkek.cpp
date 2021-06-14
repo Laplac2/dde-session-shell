@@ -77,6 +77,7 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
         m_model->setCurrentUser(user);
     } else {
         connect(m_login1Inter, &DBusLogin1Manager::SessionRemoved, this, [=] {
+            qDebug() << "DBusLogin1Manager::SessionRemoved";
             // lockservice sometimes fails to call on olar server
             QDBusPendingReply<QString> replay = m_lockInter->CurrentUser();
             replay.waitForFinished();
@@ -129,6 +130,9 @@ GreeterWorkek::GreeterWorkek(SessionBaseModel *const model, QObject *parent)
          createAuthentication(m_account);
     });
     m_xEventInter->RegisterFullScreen();
+
+    qDebug() << "greeter worker:" << m_model->currentUser()->name();
+    // m_greeter->authenticate(m_model->currentUser()->name());
 }
 
 GreeterWorkek::~GreeterWorkek()
@@ -147,6 +151,7 @@ void GreeterWorkek::initConnections()
     /* com.deepin.daemon.Authenticate */
     connect(m_authFramework, &DeepinAuthFramework::FramworkStateChanged, m_model, &SessionBaseModel::updateFrameworkState);
     connect(m_authFramework, &DeepinAuthFramework::LimitsInfoChanged, this, [this](const QString &account) {
+        qDebug() << "GreeterWorkek::initConnections LimitsInfoChanged:" << account << m_model->currentUser()->name();
         if (account == m_model->currentUser()->name()) {
             m_model->updateLimitedInfo(m_authFramework->GetLimitedInfo(account));
         }
@@ -200,6 +205,7 @@ void GreeterWorkek::initConnections()
     connect(m_authFramework, &DeepinAuthFramework::PromptChanged, m_model, &SessionBaseModel::updatePrompt);
     /* org.freedesktop.login1.Session */
     connect(m_login1SessionSelf, &Login1SessionSelf::ActiveChanged, this, [=](bool active) {
+        qDebug() << "Login1SessionSelf::ActiveChanged:" << active;
         if (m_model->currentUser() == nullptr || m_model->currentUser()->name().isEmpty()) {
             return;
         }
@@ -225,6 +231,7 @@ void GreeterWorkek::initConnections()
     });
     /* com.deepin.dde.LockService */
     connect(m_lockInter, &DBusLockService::UserChanged, this, [=] (const QString &json) {
+        qDebug() << "DBusLockService::UserChanged:" << json;
         m_resetSessionTimer->stop();
         destoryAuthentication(m_account);
         m_model->setCurrentUser(json);
@@ -338,6 +345,7 @@ void GreeterWorkek::switchToUser(std::shared_ptr<User> user)
     } else {
         m_model->setCurrentUser(user);
     }
+    qDebug() << "switch user finished";
 }
 
 /**
@@ -454,6 +462,7 @@ void GreeterWorkek::destoryAuthentication(const QString &account)
  */
 void GreeterWorkek::startAuthentication(const QString &account, const int authType)
 {
+    qDebug() << "GreeterWorkek::startAuthentication:" << account << authType;
     switch (m_model->getAuthProperty().FrameworkState) {
     case 0:
         if (m_model->getAuthProperty().MFAFlag) {
@@ -480,6 +489,7 @@ void GreeterWorkek::startAuthentication(const QString &account, const int authTy
  */
 void GreeterWorkek::sendTokenToAuth(const QString &account, const int authType, const QString &token)
 {
+    qDebug() << "GreeterWorkek::sendTokenToAuth:" << account << authType << token;
     //密码输入类型
     if(authType == 1)
       m_password = token;
@@ -586,6 +596,7 @@ void GreeterWorkek::userAuthForLightdm(std::shared_ptr<User> user)
  */
 void GreeterWorkek::showPrompt(const QString &text, const QLightDM::Greeter::PromptType type)
 {
+    qDebug() << "GreeterWorkek::showPrompt:" << text << type;
     switch (type) {
     case QLightDM::Greeter::PromptTypeSecret:
         m_model->updateAuthStatus(AuthTypeSingle, StatusCodePrompt, text);
@@ -603,6 +614,7 @@ void GreeterWorkek::showPrompt(const QString &text, const QLightDM::Greeter::Pro
  */
 void GreeterWorkek::showMessage(const QString &text, const QLightDM::Greeter::MessageType type)
 {
+    qDebug() << "GreeterWorkek::showMessage:" << text << type;
     switch (type) {
     case QLightDM::Greeter::MessageTypeInfo:
         m_model->updateAuthStatus(AuthTypeSingle, StatusCodeSuccess, text);
